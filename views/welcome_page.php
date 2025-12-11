@@ -1,10 +1,5 @@
 <?php
 require_once '../settings/config.php';
-
-if (isset($_SESSION['user_id'])) {
-    header("Location: browse_recipes.php");
-    exit();
-}
 ?>
 
 <!DOCTYPE html>
@@ -26,7 +21,7 @@ if (isset($_SESSION['user_id'])) {
         <p>Discover Recipes. On your terms.</p>
         <a href="register_page.php">Register</a>
         <a href="login_page.php">Login</a>
-        <a href="browse_recipes.php">Browse Recipes</a>
+        
     </div>
 
 </body>

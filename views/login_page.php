@@ -5,45 +5,38 @@ $error_message = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $username = trim($_POST['username']);
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
-    $confirm_password = trim($_POST['confirm_password']);
 
-    if ($username === "" || $email === "" || $password === "" || $confirm_password === "") {
-        $error_message = "All fields are required. One or more fields are empty";
-    } elseif ($password !== $confirm_password) {
-        $error_message = "Passwords do not match.";
+    if ($email === "" || $password === "") {
+        $error_message = "FILL IN ALL FIELDS.";
     } else {
+        $conn = getDBConnection();//acting as sql object now, remember.
 
-        $conn = getDBConnection();
+        $stmt = $conn->prepare("SELECT user_id, username, password FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);//bind parameter for replacing placeholder. 
 
-     
-        $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
-        $stmt->bind_param("s", $email);
         $stmt->execute();
         $stmt->store_result();
 
-        if ($stmt->num_rows > 0) {
-            $error_message = "An account with this email already exists. Maybe you should try logging in?";
-        } else {
+        if ($stmt->num_rows === 1){
+            //checking for an exact row match for the email
+            $stmt->bind_result($user_id, $username, $stored_password);
+            $stmt->fetch();
 
-          
-            $hash_password = password_hash($password,PASSWORD_BCRYPT); 
-            $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-            $stmt->bind_param("sss", $username, $email, $hash_password);//this is inserting the parameters into the database.
-
-            if ($stmt->execute()) {
-                $_SESSION['user_id'] = $stmt->insert_id;
+            if ($password === $stored_password) {
+                $_SESSION['user_id'] = $user_id;
                 $_SESSION['username'] = $username;
 
-                header("Location: login_page.php");
+                header("Location: browse_recipes.php");
                 exit();
             } else {
-                $error_message = "Error: Could not create account.";
+                $error_message = "Wrong Password Entered. Try again. ";
             }
+        } else {
+            $error_message = "Email matching error, that emails is not regiseted with an account. .";
         }
-
+    
         $stmt->close();
         $conn->close();
     }
@@ -54,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Register - Meal-Maker</title>
+    <title>Login - Meal-Maker</title>
     <link href="../styling/welcomepagestyling.css" rel="stylesheet" type="text/css">
 
     <style>
@@ -122,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="background"></div>
 
     <div class="form-container">
-        <h2>Create an Account</h2>
+        <h2>Login</h2>
 
         <?php if ($error_message !== ""): ?>
             <p class="error"><?= $error_message ?></p>
@@ -130,19 +123,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form action="" method="POST">
 
-            <input type="text" name="username" placeholder="Username" required>
-
             <input type="email" name="email" placeholder="Email" required>
 
             <input type="password" name="password" placeholder="Password" required>
 
-            <input type="password" name="confirm_password" placeholder="Confirm Password" required>
-
-            <button type="submit">Register</button>
+            <button type="submit">Login</button>
         </form>
 
         <p style="text-align:center; margin-top:15px;">
-            Already have an account? <a href="login_page.php">Login here</a>
+            Don't have an account? <a href="register_page.php">Register here</a>
         </p>
     </div>
 
