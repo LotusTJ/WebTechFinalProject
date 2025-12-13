@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once '../settings/config.php';
 
 $error_message = "";
@@ -11,30 +12,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($email === "" || $password === "") {
         $error_message = "FILL IN ALL FIELDS.";
     } else {
-        $conn = getDBConnection();//acting as sql object now, remember.
+        $conn = getDBConnection();
 
         $stmt = $conn->prepare("SELECT user_id, username, password FROM users WHERE email = ?");
-        $stmt->bind_param("s", $email);//bind parameter for replacing placeholder. 
+        $stmt->bind_param("s", $email);
 
         $stmt->execute();
         $stmt->store_result();
 
         if ($stmt->num_rows === 1){
-            //checking for an exact row match for the email
             $stmt->bind_result($user_id, $username, $stored_password);
             $stmt->fetch();
 
-            if ($password === $stored_password) {
+           
+            if (password_verify($password, $stored_password)) {
                 $_SESSION['user_id'] = $user_id;
                 $_SESSION['username'] = $username;
 
                 header("Location: browse_recipes.php");
                 exit();
             } else {
-                $error_message = "Wrong Password Entered. Try again. ";
+                $error_message = "Wrong Password Entered. Try again.";
             }
         } else {
-            $error_message = "Email matching error, that emails is not regiseted with an account. .";
+            $error_message = "Email matching error, that email is not registered with an account.";
         }
     
         $stmt->close();

@@ -9,30 +9,43 @@ $conn = getDBConnection();
 $where_clauses = [];
 $params = [];
 $param_types = '';
-$search_ingredient = trim($_GET['ingredient'] ?? '');
-$min_calories = (int)($_GET['min_calories'] ?? 0);
-$max_calories = (int)($_GET['max_calories'] ?? 10000);
-$country_of_origin = trim($_GET['country'] ?? '');
-$recipe_type = trim($_GET['type'] ?? '');
 $error_message = null;
+
+$search_ingredient_input = trim($_GET['ingredient'] ?? '');
+$search_ingredients = [];
+if (!empty($search_ingredient_input)) {
+    $search_ingredients = array_filter(array_map('trim', explode(',', $search_ingredient_input)));
+}
+
+$country_of_origin = trim($_GET['country'] ?? '');
+
+$recipe_types_selected = $_GET['type'] ?? [];
+if (!is_array($recipe_types_selected)) {
+    $recipe_types_selected = [$recipe_types_selected];
+}
+$recipe_types_selected = array_filter(array_map('trim', $recipe_types_selected));
 
 $sql_select = "SELECT r.* FROM recipes r";
 $sql_join = "";
 $sql_group = "";
+$sql_having = "";
 
-if (!empty($search_ingredient)) {
+if (!empty($search_ingredients)) {
     $sql_join .= " JOIN ingredients i ON r.recipe_id = i.recipe_id ";
-    $where_clauses[] = " i.ingredient_name LIKE ? ";
-    $params[] = '%' . $search_ingredient . '%';
-    $param_types .= 's';
+    
+    $ingredient_conditions = [];
+    foreach ($search_ingredients as $ingredient) {
+        $ingredient_conditions[] = " LOWER(i.ingredient_name) LIKE LOWER(?) "; 
+        $params[] = '%' . $ingredient . '%';
+        $param_types .= 's';
+    }
+    
+  
+    $where_clauses[] = "(" . implode(" OR ", $ingredient_conditions) . ")";
+    
     $sql_group = " GROUP BY r.recipe_id ";
-}
-
-if ($min_calories > 0 || $max_calories < 10000) {
-    $where_clauses[] = " r.calories BETWEEN ? AND ? ";
-    $params[] = $min_calories;
-    $params[] = $max_calories;
-    $param_types .= 'ii';
+    
+    $sql_having = " HAVING COUNT(DISTINCT i.ingredient_id) >= " . count($search_ingredients);
 }
 
 if (!empty($country_of_origin)) {
@@ -41,10 +54,14 @@ if (!empty($country_of_origin)) {
     $param_types .= 's';
 }
 
-if (!empty($recipe_type)) {
-    $where_clauses[] = " r.type = ? ";
-    $params[] = $recipe_type;
-    $param_types .= 's';
+if (!empty($recipe_types_selected)) {
+    $type_placeholders = implode(',', array_fill(0, count($recipe_types_selected), '?'));
+    $where_clauses[] = " r.type IN ({$type_placeholders}) ";
+    
+    foreach ($recipe_types_selected as $type) {
+        $params[] = $type;
+        $param_types .= 's';
+    }
 }
 
 $sql = $sql_select . $sql_join;
@@ -53,7 +70,7 @@ if (!empty($where_clauses)) {
     $sql .= " WHERE " . implode(" AND ", $where_clauses);
 }
 
-$sql .= $sql_group . " ORDER BY r.name ASC";
+$sql .= $sql_group . $sql_having . " ORDER BY r.name ASC";
 
 $recipes = [];
 if ($stmt = $conn->prepare($sql)) {
@@ -80,96 +97,66 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Browse Recipes - Meal-Maker</title>
+    <title>Browse Recipes</title>
+    <link href="../styling/browserecipesstyling.css" rel="stylesheet" type="text/css">
     <style>
-        body { font-family: sans-serif; background-color: #f7f7f7; color: #333; padding: 20px; }
-        .recipe-card { 
-            background: white; 
-            border: 1px solid #ddd; 
-            padding: 20px; 
-            margin-bottom: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .filter-form { 
-            margin-bottom: 40px; 
-            padding: 20px; 
-            border: 1px solid #ff6347;
-            background: #fff;
+        .upload-recipe-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: #eb2300ff;
+            color: white;
+            text-decoration: none;
             border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
         }
-        label { 
-            display: block; 
-            margin-top: 10px; 
-            font-weight: bold; 
-            color: #ff6347;
-        }
-        input[type="text"], input[type="number"] { 
-            width: 100%; 
-            padding: 10px; 
-            margin-bottom: 10px; 
-            border: 1px solid #ccc; 
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .two-column {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        .button-group {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        button[type="submit"] { 
-            padding: 10px 20px; 
-            background: #ff6347; 
-            color: white; 
-            border: none; 
-            border-radius: 4px; 
-            cursor: pointer;
-            flex-grow: 1;
-        }
-        button[type="submit"]:hover { 
+        .upload-recipe-btn:hover {
             background: #e37a32;
         }
-        a.clear-filters {
-            display: block;
-            padding: 10px 20px;
-            text-align: center;
-            border: 1px solid #ff6347;
-            color: #ff6347;
-            border-radius: 4px;
-            text-decoration: none;
-            flex-grow: 1;
-        }
-        h1 { color: #ff6347; }
-        .recipe-image { max-width: 100%; height: auto; border-radius: 4px; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <h1>🍲 Browse Meal-Maker Recipes</h1>
-
+    <a href="user_add_recipe.php" class="upload-recipe-btn">Upload Your OWN Recipe</a>
+    
+    <h1>Browse Meal-Maker Recipes</h1>
+    
     <div class="filter-form">
         <h2>Refine Your Search</h2>
         <form action="browse_recipes.php" method="GET">
             
             <div class="two-column">
                 <div>
-                    <label for="ingredient">Ingredient Tag:</label>
-                    <input type="text" id="ingredient" name="ingredient" value="<?= htmlspecialchars($search_ingredient) ?>" placeholder="e.g., Milk, Eggs">
+                    <label for="ingredient">Ingredient Tags </label>
+                    <input type="text" id="ingredient" name="ingredient" value="<?= htmlspecialchars($search_ingredient_input) ?>" placeholder="e.g., Milk, Eggs, Sugar">
 
-                    <label for="type">Recipe Type:</label>
-                    <input type="text" id="type" name="type" value="<?= htmlspecialchars($recipe_type) ?>" placeholder="e.g., Savor or Sweet>
-
-                    <label for="country">Country of Origin:</label>
-                    <input type="text" id="country" name="country" value="<?= htmlspecialchars($country_of_origin) ?>" placeholder="e.g., China, Italy">
-                </div>
-                <div>
-                    
+                    <label>Recipe Type:</label>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="type[]" value="sweet" 
+                            <?= in_array('sweet', $recipe_types_selected) ? 'checked' : '' ?>> Sweet
+                        </label>
+                        <label>
+                            <input type="checkbox" name="type[]" value="savory" 
+                            <?= in_array('savory', $recipe_types_selected) ? 'checked' : '' ?>> Savory
+                        </label>
                     </div>
-                    <div style="height: 10px;"></div> 
+
+                    <label for="country">Country of Origin</label>
+                    <select id="country" name="country">
+                        <option value="">-- All Countries --</option>
+                        <?php
+                        $countries = ['Italy', 'Mexico', 'United States', 'China', 'India']; 
+                        foreach ($countries as $c): ?>
+                            <option value="<?= htmlspecialchars($c) ?>" 
+                            <?= ($country_of_origin === $c) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($c) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+
                 </div>
             </div>
             
@@ -181,7 +168,7 @@ $conn->close();
     </div>
 
     <?php if ($error_message): ?>
-        <p style="color: red; padding: 10px; border: 1px solid red; background: #fee; border-radius: 4px;"><?= $error_message ?></p>
+        <p class="error-message"><?= $error_message ?></p>
     <?php elseif (empty($recipes)): ?>
         <p>No recipes found matching your criteria. Try adjusting your filters or <a href="browse_recipes.php">clearing them</a>.</p>
     <?php else: ?>

@@ -1,0 +1,101 @@
+body { 
+    font-family: sans-serif; 
+    background-color: #f7f7f7; 
+    color: #333; 
+    padding: 20px; 
+}
+h1 { 
+    color: #ff6347; 
+}
+h2 { 
+    color: #333;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+.filter-form { 
+    margin-bottom: 40px; 
+    padding: 20px; 
+    border: 1px solid #ff6347;
+    background: #fff;
+    border-radius: 8px;
+}
+label { 
+    display: block; 
+    margin-top: 10px; 
+    font-weight: bold; 
+    color: #ff6347;
+}
+input[type="text"], 
+input[type="number"],
+select { 
+    width: 100%; 
+    padding: 10px; 
+    margin-bottom: 10px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.two-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+.checkbox-group label {
+    display: inline-block;
+    margin-right: 15px;
+    font-weight: normal;
+    color: #333;
+}
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 5px;
+}
+.button-group {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+button[type="submit"] { 
+    padding: 10px 20px; 
+    background: #ff6347; 
+    color: white; 
+    border: none; 
+    border-radius: 4px; 
+    cursor: pointer;
+    flex-grow: 1;
+}
+button[type="submit"]:hover { 
+    background: #e37a32;
+}
+a.clear-filters {
+    display: block;
+    padding: 10px 20px;
+    text-align: center;
+    border: 1px solid #ff6347;
+    color: #ff6347;
+    border-radius: 4px;
+    text-decoration: none;
+    flex-grow: 1;
+}
+.recipe-card { 
+    background: white; 
+    border: 1px solid #ddd; 
+    padding: 20px; 
+    margin-bottom: 20px; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.recipe-image { 
+    max-width: 100%; 
+    height: auto; 
+    border-radius: 4px; 
+    margin-top: 10px; 
+}
+.error-message {
+    color: red; 
+    padding: 10px; 
+    border: 1px solid red; 
+    background: #fee; 
+    border-radius: 4px;
+}
