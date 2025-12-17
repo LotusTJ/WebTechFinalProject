@@ -4,7 +4,6 @@ require_once '../settings/config.php';
 
 <!DOCTYPE html>
 <html lang="en">
-<link href="../styling/userprofileviewstyling.css" rel="stylesheet" type="text/css">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

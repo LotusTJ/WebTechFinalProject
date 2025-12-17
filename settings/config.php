@@ -1,9 +1,9 @@
 <?php
 
 define('HOSTNAME', 'localhost');
-define('USERNAME', 'root');
-define('PASSWORD', '');
-define('DATABASE', 'meal_maker');
+define('USERNAME', 'oghenetejiri.etireri');
+define('PASSWORD', 'Adeyinka67$');
+define('DATABASE', 'webtech_2025A_oghenetejiri_etireri');
 
 function getDBConnection() {
     $conn = new mysqli(HOSTNAME, USERNAME, PASSWORD, DATABASE);
