@@ -36,24 +36,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         
         //image uploading, taken from Claude
-        $image_name = null;
-        if (isset($_FILES['recipe_image']) && $_FILES['recipe_image']['error'] === UPLOAD_ERR_OK) {
-            $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-            $file_type = $_FILES['recipe_image']['type'];
-            
-            if (in_array($file_type, $allowed_types)) {
-                $file_extension = pathinfo($_FILES['recipe_image']['name'], PATHINFO_EXTENSION);
-                $image_name = uniqid('recipe_', true) . '.' . $file_extension;
-                $upload_path = '../images/' . $image_name;
-                
-                if (!move_uploaded_file($_FILES['recipe_image']['tmp_name'], $upload_path)) {
-                    $error_message = "Failed to upload image. Please try again.";
-                    $image_name = null;
-                }
-            } else {
-                $error_message = "Invalid image type. Please upload a JPG, PNG, or GIF file.";
-            }
+       $image_name = null;
+
+if (isset($_FILES['recipe_image']) && $_FILES['recipe_image']['error'] === UPLOAD_ERR_OK) {
+
+    $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    $file_type = mime_content_type($_FILES['recipe_image']['tmp_name']);
+
+    if (in_array($file_type, $allowed_types)) {
+
+        $file_extension = strtolower(pathinfo($_FILES['recipe_image']['name'], PATHINFO_EXTENSION));
+        $image_name = uniqid('recipe_', true) . '.' . $file_extension;
+
+        // absolute server path (SAFE)
+        $upload_dir = __DIR__ . '/../images/';
+        $upload_path = $upload_dir . $image_name;
+
+        // ensure directory exists
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
         }
+
+        if (!move_uploaded_file($_FILES['recipe_image']['tmp_name'], $upload_path)) {
+            $error_message = "Failed to upload image. Please try again.";
+            $image_name = null;
+        }
+
+    } else {
+        $error_message = "Invalid image type. Please upload a JPG, PNG, or GIF file.";
+    }
+}
+
         
         //Insert recipe into database if no errors
         if (empty($error_message)) {

@@ -1,8 +1,17 @@
 <?php
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+
 session_start();
 require_once '../settings/config.php';
 
 $error_message = "";
+
+
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -14,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $conn = getDBConnection();
 
-        $stmt = $conn->prepare("SELECT user_id, username, password FROM users WHERE email = ?");
+        $stmt = $conn->prepare("select user_id, username, password from users where email = ?");
         $stmt->bind_param("s", $email);
 
         $stmt->execute();
