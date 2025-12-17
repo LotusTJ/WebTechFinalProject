@@ -145,6 +145,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Already have an account? <a href="login_page.php">Login here</a>
         </p>
     </div>
+<script>
+    document.getElementById('registerForm').addEventListener('submit', function(event) {
+        
+        const username = document.getElementsByName('username')[0].value;
+        const email = document.getElementsByName('email')[0].value;
+        const password = document.getElementsByName('password')[0].value;
+        const confirmPassword = document.getElementsByName('confirm_password')[0].value;
+        
+        
+        const usernameRegex = /^[a-zA-Z0-9_]{4,30}$/;
+        
+       
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+   
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
 
+        let errorMessage = "";
+
+        
+        if (!usernameRegex.test(username)) {
+            errorMessage += "Username must be 4-50 characters and contain only letters, numbers, or underscores.\n";
+        }
+
+        if (!emailRegex.test(email)) {
+            errorMessage += "Invalid email address type.\n";
+        }
+
+        if (!passwordRegex.test(password)) {
+            errorMessage += "Password needs at least character, minimum one uppercase letter, one lowercase letter, and one number.\n";
+        }
+
+        if (password !== confirmPassword) {
+            errorMessage += "Passwords do not match.\n";
+        }
+
+    
+        if (errorMessage !== "") {
+            alert(errorMessage); 
+            event.preventDefault(); 
+        }
+    });
+</script>
 </body>
 </html>

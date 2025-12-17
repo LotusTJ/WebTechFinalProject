@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $instructions = trim($_POST['instructions']);
     $user_id = $_SESSION['user_id'];
     
-    // Get ingredients array
+    
     $ingredients = $_POST['ingredients'] ?? [];
     $ingredients = array_filter(array_map('trim', $ingredients)); //this is just to remove empty ingredients and trim spaces.
     
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $conn->begin_transaction();
             
             try {
-                // Insert recipe
+                //Insert recipe
                 $stmt = $conn->prepare("INSERT INTO recipes (user_id, name, country, type, calories, budget, image_name, instructions) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->bind_param("isssidss", $user_id, $name, $country, $type, $calories, $budget, $image_name, $instructions);
                 $stmt->execute();
@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $stmt->close();
                 
-                // Commit transaction
+                //Commit transaction
                 $conn->commit();
                 
                 $success_message = "Recipe added successfully!";
@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit();
                 
             } catch (Exception $e) {
-                // Rollback transaction on error
+                //Rollback transaction on error
                 $conn->rollback();
                 $error_message = "Error adding recipe: " . $e->getMessage();
             }
@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Check for success parameter
+//check the success message
 if (isset($_GET['success']) && $_GET['success'] == 1) {
     $success_message = "Recipe added successfully!";
 }
@@ -187,7 +187,7 @@ if (isset($_GET['success']) && $_GET['success'] == 1) {
             <div class="form-group">
                 <label for="recipe_image">Recipe Image (Optional)</label>
                 <input type="file" id="recipe_image" name="recipe_image" accept="image/jpeg,image/jpg,image/png,image/gif">
-                <div class="file-info">Accepted formats: JPG, PNG, GIF (Max 5MB recommended)</div>
+                <div class="file-info">Accepted formats: JPG, PNG, GIF</div>
             </div>
             
             <div class="form-group">
@@ -216,7 +216,17 @@ if (isset($_GET['success']) && $_GET['success'] == 1) {
             const row = button.parentElement;
             row.remove();
         }
+
+        const numberRegex = /^\d+(\.\d{1,2})?$/;//matches integers or decimals
+
+    if (!numberRegex.test(budgetInput)) {
+    alert("Please enter a valid budget amount.");
+    event.preventDefault();
+}
+        
     </script>
+
+    
 
 </body>
 </html>

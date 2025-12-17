@@ -116,10 +116,46 @@ $conn->close();
         .upload-recipe-btn:hover {
             background: #e37a32;
         }
+
+        .user-profile-btn {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            padding: 12px 24px;
+            background: #fa6133ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        .user-profile-btn:hover {
+            background: #e37a32;
+        }
+
+        .dashboard-btn {
+            position: fixed;
+            top: 120px;
+            right: 20px;
+            padding: 12px 24px;
+            background: #ff8c42ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        .dashboard-btn:hover {
+            background: #e37a32;
+        }
     </style>
 </head>
 <body>
     <a href="user_add_recipe.php" class="upload-recipe-btn">Upload Your OWN Recipe</a>
+    <a href="user_profile_view.php" class="user-profile-btn">View Your Profile</a>
+    <a href="dashboard.php" class="dashboard-btn">Go to Dashboard</a>
     
     <h1>Browse Meal-Maker Recipes</h1>
     
